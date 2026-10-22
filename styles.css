@@ -1013,6 +1013,126 @@ dialog .button {
   padding:8px 20px
 }
 
+.registration-dialog {
+  width:min(480px,calc(100% - 32px));
+  max-height:calc(100dvh - 32px);
+  overflow-y:auto;
+  padding:38px 32px 32px
+}
+
+.registration-dialog h2 {
+  font-size:34px;
+  line-height:1.1;
+  padding-right:24px
+}
+
+.registration-dialog .registration-subtitle {
+  margin:10px 0 26px;
+  color:var(--teal);
+  font-weight:500
+}
+
+.registration-field {
+  margin-bottom:16px
+}
+
+.registration-field label {
+  display:block;
+  margin-bottom:7px;
+  font-weight:500
+}
+
+.registration-field input {
+  display:block;
+  width:100%;
+  min-height:48px;
+  padding:11px 15px;
+  border:1px solid #a9b8b9;
+  border-radius:14px;
+  background:#fff;
+  color:var(--ink);
+  font:inherit;
+  font-size:17px
+}
+
+.registration-field input:focus-visible,.registration-consent input:focus-visible {
+  outline:3px solid var(--teal);
+  outline-offset:2px
+}
+
+.registration-field input[aria-invalid="true"] {
+  border-color:#b94a32
+}
+
+.field-error {
+  display:block;
+  color:#a63b28;
+  font-size:13px;
+  line-height:1.3
+}
+
+.field-error:not(:empty) {
+  margin-top:5px
+}
+
+.registration-consent {
+  display:flex;
+  align-items:flex-start;
+  gap:11px;
+  margin-top:22px;
+  font-size:14px;
+  line-height:1.4
+}
+
+.registration-consent input {
+  width:20px;
+  height:20px;
+  flex:none;
+  margin:1px 0 0;
+  accent-color:var(--teal)
+}
+
+.registration-consent a {
+  color:var(--teal);
+  text-decoration:underline
+}
+
+.registration-status {
+  margin:12px 0;
+  font-size:15px;
+  line-height:1.35
+}
+
+.registration-status[data-state="error"] {
+  color:#a63b28
+}
+
+.registration-status[data-state="success"] {
+  color:#087680
+}
+
+.registration-submit {
+  width:100%;
+  min-height:50px;
+  margin-top:12px;
+  font-size:17px
+}
+
+.registration-submit:disabled {
+  cursor:wait;
+  opacity:.7
+}
+
+@media(max-width:520px) {
+  .registration-dialog {
+    padding:48px 20px 24px
+  }
+
+  .registration-dialog h2 {
+    font-size:28px
+  }
+}
+
 @media(min-width:1921px) {
   .hero {
     background-size:1920px 100%;
@@ -1517,7 +1637,20 @@ dialog .button {
   .registration {
     min-height:0;
     padding:100px 0 95px;
-    background:radial-gradient(ellipse 460px 160px at 50% 65%,#fff 10%,transparent 100%)
+    position:relative;
+    background:none
+  }
+
+  .registration::before {
+    content:'';
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    background:radial-gradient(ellipse 60% 44% at 50% 52%,#fff 7%,#fffc 40%,transparent 100%)
+  }
+
+  .registration>.container {
+    z-index:1
   }
 
   .registration h2 {

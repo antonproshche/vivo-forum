@@ -67,7 +67,7 @@
           </div>
           <div class="hero-actions">
             <div class="pending-action">
-              <button class="button" type="button" data-pending="registration" aria-describedby="hero-registration-note">Зарегистрироваться</button>
+              <button class="button" type="button" data-registration-open aria-describedby="hero-registration-note">Зарегистрироваться</button>
               <small id="hero-registration-note">Ссылка на регистрацию уточняется</small>
             </div>
             <a class="button button-blue" href="#program">Программа форума</a>
@@ -161,7 +161,7 @@
       <section id="registration" class="registration" aria-labelledby="registration-title">
         <div class="container">
           <h2 id="registration-title">Станьте участником форума</h2>
-          <button class="button button-large" type="button" data-pending="registration" aria-describedby="registration-note">Зарегистрироваться</button>
+          <button class="button button-large" type="button" data-registration-open aria-describedby="registration-note">Зарегистрироваться</button>
           <p class="integration-note" id="registration-note">Ссылка на регистрацию уточняется</p>
         </div>
       </section>
@@ -381,6 +381,35 @@
         </div>
       </div>
     </footer>
+    <dialog id="registration-dialog" class="registration-dialog" aria-labelledby="registration-dialog-title" aria-describedby="registration-dialog-subtitle">
+      <button type="button" class="dialog-close registration-close" aria-label="Закрыть форму регистрации">×</button>
+      <h2 id="registration-dialog-title">Регистрация на форум</h2>
+      <p id="registration-dialog-subtitle" class="registration-subtitle">13 ноября 2026 · Волгоград</p>
+      <form id="registration-form" novalidate>
+        <div class="registration-field">
+          <label for="registration-name">Имя, фамилия</label>
+          <input id="registration-name" name="fullName" type="text" autocomplete="name" required aria-describedby="registration-name-error">
+          <span id="registration-name-error" class="field-error"></span>
+        </div>
+        <div class="registration-field">
+          <label for="registration-phone">Телефон</label>
+          <input id="registration-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" required aria-describedby="registration-phone-error">
+          <span id="registration-phone-error" class="field-error"></span>
+        </div>
+        <div class="registration-field">
+          <label for="registration-email">E-mail</label>
+          <input id="registration-email" name="email" type="email" autocomplete="email" required aria-describedby="registration-email-error">
+          <span id="registration-email-error" class="field-error"></span>
+        </div>
+        <div class="registration-consent">
+          <input id="registration-consent" name="consent" type="checkbox" required aria-describedby="registration-consent-error">
+          <label for="registration-consent">Согласен(на) на обработку персональных данных. <a id="registration-privacy" href="#">Политика в отношении обработки персональных данных</a></label>
+        </div>
+        <span id="registration-consent-error" class="field-error"></span>
+        <p id="registration-status" class="registration-status" role="status" aria-live="polite"></p>
+        <button class="button registration-submit" type="submit">ЗАРЕГИСТРИРОВАТЬСЯ</button>
+      </form>
+    </dialog>
     <dialog id="pending-dialog" aria-labelledby="dialog-title" aria-describedby="dialog-description">
       <button type="button" class="dialog-close" aria-label="Закрыть уведомление">×</button>
       <h2 id="dialog-title">Информация уточняется</h2>
