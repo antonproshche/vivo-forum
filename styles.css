@@ -1319,21 +1319,24 @@ dialog .button {
     right:-50px;
     top:20px;
     width:340px;
-    height:340px
+    height:340px;
+    transform:translate(-40px,-20px)
   }
 
   .orb-small {
     left:-45px;
     top:365px;
     width:140px;
-    height:140px
+    height:140px;
+    display:none
   }
 
   .orb-blue {
     left:0;
     top:295px;
     width:200px;
-    height:200px
+    height:200px;
+    display:none
   }
 
   .orb-purple {
@@ -1513,7 +1516,8 @@ dialog .button {
 
   .registration {
     min-height:0;
-    padding:100px 0 95px
+    padding:100px 0 95px;
+    background:radial-gradient(ellipse 460px 160px at 50% 65%,#fff 10%,transparent 100%)
   }
 
   .registration h2 {
@@ -1706,8 +1710,18 @@ dialog .button {
     margin-top:22px
   }
 
+  .contact {
+    text-align:center
+  }
+
   .contact address {
     font-size:14px
+  }
+
+  .contact address a {
+    max-width:100%;
+    margin-inline:auto;
+    text-align:center
   }
 
   .site-footer {
@@ -1807,7 +1821,8 @@ dialog .button {
     width:360px;
     height:320px;
     right:-75px;
-    top:120px
+    top:120px;
+    transform:translate(-40px,-40px)
   }
 
   .orb-blue {
