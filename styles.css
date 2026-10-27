@@ -426,7 +426,7 @@ ul {
 }
 
 .history {
-  margin-top:93px
+  margin-top:30px
 }
 
 .history-copy {
@@ -1622,9 +1622,9 @@ ul {
   position:relative;
   isolation:isolate;
   width:min(1088px,calc(100% - 64px));
-  height:535px;
+  height:380px;
   margin:0 auto 78px;
-  padding-top:275px;
+  padding-top:120px;
   display:grid;
   grid-template-columns:repeat(4,minmax(0,1fr));
   align-items:start;
@@ -1634,7 +1634,7 @@ ul {
 .photo-composition::before,.photo-composition::after {
   content:"";
   position:absolute;
-  top:275px;
+  top:120px;
   width:var(--photo-size);
   aspect-ratio:1;
   border-radius:50%;
@@ -1721,8 +1721,8 @@ ul {
   .hero-stats dt { font-size:20px }
   .hero-actions { top:810px; gap:12px }
   .hero-actions .button { width:250px; font-size:16px }
-  .photo-composition { height:420px; padding-top:150px }
-  .photo-composition::before,.photo-composition::after { top:150px }
+  .photo-composition { height:340px; padding-top:70px }
+  .photo-composition::before,.photo-composition::after { top:70px }
 }
 
 @media (max-width:1250px) {
@@ -1802,6 +1802,11 @@ ul {
     margin-bottom:55px
   }
   .photo-composition::before,.photo-composition::after { top:70px }
+}
+
+@media (max-width:750px) {
+  /* Crop the partially transparent bottom edge of Background.png behind the curve. */
+  .hero { background-size:auto 105% }
 }
 
 @media (max-width:520px) {
