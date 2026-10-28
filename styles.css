@@ -1494,13 +1494,67 @@ ul {
   left:calc(50% - 1114px + var(--orb-index) * 229.5px);
 }
 
-.orb-band-1 { --orb-index:0; background:linear-gradient(rgb(129 61 195 / 0.497),rgb(184 120 255 / 0.497)) }
-.orb-band-2 { --orb-index:1; background:linear-gradient(rgb(136 81 206 / 0.488),rgb(174 112 239 / 0.488)) }
-.orb-band-3 { --orb-index:2; background:linear-gradient(rgb(135 94 202 / 0.454),rgb(159 117 231 / 0.454)) }
-.orb-band-4 { --orb-index:3; background:linear-gradient(rgb(123 99 188 / 0.427),rgb(149 122 216 / 0.427)) }
-.orb-band-5 { --orb-index:4; background:linear-gradient(rgb(92 119 176 / 0.481),rgb(111 140 200 / 0.481)) }
-.orb-band-6 { --orb-index:5; background:linear-gradient(rgb(90 119 176 / 0.343),rgb(111 141 181 / 0.343)) }
-.orb-band-7 { --orb-index:6; background:linear-gradient(rgb(87 153 149 / 0.562),rgb(71 158 182 / 0.562)) }
+.orb-band-1 { --orb-index:0; --orb-background:linear-gradient(rgb(129 61 195 / 0.497),rgb(184 120 255 / 0.497)) }
+.orb-band-2 { --orb-index:1; --orb-background:linear-gradient(rgb(136 81 206 / 0.488),rgb(174 112 239 / 0.488)) }
+.orb-band-3 { --orb-index:2; --orb-background:linear-gradient(rgb(135 94 202 / 0.454),rgb(159 117 231 / 0.454)) }
+.orb-band-4 { --orb-index:3; --orb-background:linear-gradient(rgb(123 99 188 / 0.427),rgb(149 122 216 / 0.427)) }
+.orb-band-5 { --orb-index:4; --orb-background:linear-gradient(rgb(92 119 176 / 0.481),rgb(111 140 200 / 0.481)) }
+.orb-band-6 { --orb-index:5; --orb-background:linear-gradient(rgb(90 119 176 / 0.343),rgb(111 141 181 / 0.343)) }
+.orb-band-7 { --orb-index:6; --orb-background:linear-gradient(rgb(87 153 149 / 0.562),rgb(71 158 182 / 0.562)) }
+
+/* The existing .orb owns parallax translation; only its painted surface flips.
+   Orthographic rotateY keeps the center fixed and cannot expand the artwork. */
+.orb-band::before {
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  background:var(--orb-background);
+  transform-origin:center center;
+  backface-visibility:hidden;
+  transform:rotateY(0deg);
+  animation:orb-turn-first 9s ease-in-out infinite
+}
+
+.orb-band-2::before,.orb-band-5::before {
+  animation-name:orb-turn-second
+}
+
+.orb-band-3::before,.orb-band-6::before {
+  /* Start face-on once; subsequent cycles return from edge-on during 0–1s. */
+  animation:orb-turn-third-entry 9s ease-in-out,
+    orb-turn-third 9s ease-in-out 9s infinite
+}
+
+/* Each ninth is one second: flip for 1s, then hold until the 3s boundary.
+   89.5deg leaves a thin visible edge instead of disappearing at exactly 90deg. */
+@keyframes orb-turn-first {
+  0%,44.444444%,100% { transform:rotateY(0deg) }
+  11.111111%,33.333333% { transform:rotateY(89.5deg) }
+}
+
+@keyframes orb-turn-second {
+  0%,33.333333%,77.777778%,100% { transform:rotateY(0deg) }
+  44.444444%,66.666667% { transform:rotateY(89.5deg) }
+}
+
+@keyframes orb-turn-third-entry {
+  0%,66.666667% { transform:rotateY(0deg) }
+  77.777778%,100% { transform:rotateY(89.5deg) }
+}
+
+@keyframes orb-turn-third {
+  0%,77.777778%,100% { transform:rotateY(89.5deg) }
+  11.111111%,66.666667% { transform:rotateY(0deg) }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  .orb-band::before {
+    animation:none;
+    transform:none;
+    backface-visibility:visible
+  }
+}
 
 .hero-date {
   position:absolute;
