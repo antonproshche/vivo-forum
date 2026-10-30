@@ -1,0 +1,72 @@
+[
+  {
+    "viewport": 375,
+    "minimumFlipWidth": [
+      24.0
+    ],
+    "consoleErrors": [],
+    "brokenImages": [],
+    "horizontalOverflow": false,
+    "checks": "passed"
+  },
+  {
+    "viewport": 390,
+    "minimumFlipWidth": [
+      24.0
+    ],
+    "consoleErrors": [],
+    "brokenImages": [],
+    "horizontalOverflow": false,
+    "checks": "passed"
+  },
+  {
+    "viewport": 430,
+    "minimumFlipWidth": [
+      24.0
+    ],
+    "consoleErrors": [],
+    "brokenImages": [],
+    "horizontalOverflow": false,
+    "checks": "passed"
+  },
+  {
+    "viewport": 768,
+    "minimumFlipWidth": [
+      24.0
+    ],
+    "consoleErrors": [],
+    "brokenImages": [],
+    "horizontalOverflow": false,
+    "checks": "passed"
+  },
+  {
+    "viewport": 1024,
+    "minimumFlipWidth": [
+      30.0
+    ],
+    "consoleErrors": [],
+    "brokenImages": [],
+    "horizontalOverflow": false,
+    "checks": "passed"
+  },
+  {
+    "viewport": 1440,
+    "minimumFlipWidth": [
+      30.0
+    ],
+    "consoleErrors": [],
+    "brokenImages": [],
+    "horizontalOverflow": false,
+    "checks": "passed"
+  },
+  {
+    "viewport": 1920,
+    "minimumFlipWidth": [
+      30.0
+    ],
+    "consoleErrors": [],
+    "brokenImages": [],
+    "horizontalOverflow": false,
+    "checks": "passed"
+  }
+]
