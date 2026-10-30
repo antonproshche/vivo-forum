@@ -306,12 +306,12 @@ ul {
 }
 
 .speakers-heading { grid-column:1 / 3 }
-.speaker-arsalan { grid-column:3 }
-.speaker-evgenia { grid-column:4 }
-.speaker-arsalan,.speaker-evgenia { padding-top:100px }
-.speaker-diana { grid-column:1 }
-.speaker-victoria { grid-column:2 }
-.speaker-nadezhda { grid-column:3 }
+.speaker-diana { grid-column:3 }
+.speaker-victoria { grid-column:4 }
+.speaker-diana,.speaker-victoria { padding-top:100px }
+.speaker-nadezhda { grid-column:1 }
+.speaker-arsalan { grid-column:2 }
+.speaker-evgenia { grid-column:3 }
 
 .speaker { min-width:0 }
 
