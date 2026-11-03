@@ -1,66 +1,81 @@
-# Hero alternating circles — verification
+# Hero circle flip — browser verification
 
-Base: `34be0cce0cce7839b442d50ff83245d6afb4baa9` (current `main`).
+Verified against branch base `f7fa596ed4a77709197a1a0bca10f93290d9b441`.
 
-The previous CSS used a 9-second animation: circles 1/4/7 started immediately,
-2/5 had a 3-second delay, and 3/6 had a 6-second delay. All seven selectors match;
-there is no incorrect `nth-child` selector in this revision. The initial emphasis
-on 1/4/7 comes from that three-group schedule, not a missing animation rule.
+## Diagnosis and repair
 
-Explicit `orb-group-a` and `orb-group-b` classes now select the odd and even
-bottom-row circles. Both animations share a 5-second duration and start time,
-with no animation delays. A turns during 0–1.5s, B during 2.5–4s, with 1-second
-face-on pauses between turns. This follows the explicit 5-second timeline in the
-request (whose prose also referred to 4 seconds and 0.5-second pauses).
+The HTML's A/B assignments and keyframe timing were correct. No conflicting
+Group B transform declaration was found. In local Chromium, the old branch
+animated **both** groups when its script initialized, so the reported B-only
+failure was not reproduced under that condition. Blocking `script.js` left
+`--orb-flip-angle: 0deg` and identity transforms on all seven painted surfaces,
+even though their animation names remained assigned.
 
-Identical turns peak at 0.75s and 3.25s. At the requested 3.15s checkpoint, B is
-already approximately edge-on; smooth easing approaches the minimum without a
-hold. The existing ResizeObserver angle calculation, 30px desktop / 24px mobile
-minimum, gradients, transparency, size, positioning, overlap, and viewport
-clipping are unchanged. The orange description circle is unaffected.
+The repair removes that zero-angle/ResizeObserver initialization dependency.
+CSS now derives the angle from the same diameter that controls layout:
+
+- Desktop: `acos(30 / 406)` = **85.7624595864°**, giving a 30px projected width.
+- Mobile (up to 800px): `acos(24 / 310)` = **85.5597545341°**, preserving 24px.
+
+The custom property is inherited by each painted `::before` surface, with no
+inline JavaScript override. Symmetric `ease-in-out` replaces the asymmetric
+`cubic-bezier(.4,0,0,1)`. The unchanged 5-second infinite keyframes peak only at
+15% and 65%, with immediate return and no edge-on plateau. Group assignments,
+colors, transparency, positions, overlap and reduced-motion rules are unchanged.
+Only Hero animation CSS and the now-unnecessary Hero observer change in production.
 
 ## Results
 
-Tested the local site in Chromium 154.0.8037.57 using Playwright.
+Playwright + Chromium **154.0.8037.57**, local rendered site, 390, 768, 800, 801,
+1440, 1920 and 2400px viewports. The 2400px view shows all seven circles, including
+those intentionally cropped at narrower widths by the existing artwork layout.
 
-| Viewport | A at 0.75s | All at 2.00s | B at 3.15s (minimum at 3.25s) | All at 4.50s | Horizontal overflow |
-| --- | --- | --- | --- | --- | --- |
-| 390px | 24px | Face-on | 27.027px (24px) | Face-on | None |
-| 768px | 24px | Face-on | 27.027px (24px) | Face-on | None |
-| 1440px | 30px | Face-on | 33.975px (30px) | Face-on | None |
-| 1920px | 30px | Face-on | 33.975px (30px) | Face-on | None |
+| Time within each 5s cycle | A: circles 1, 3, 5, 7 | B: circles 2, 4, 6 |
+| --- | --- | --- |
+| 0.75s | 30px desktop / 24px mobile | Face-on |
+| 2.00s | Face-on | Face-on |
+| 3.25s | Face-on | 30px desktop / 24px mobile |
+| 4.50s | Face-on | Face-on |
 
-- All checkpoints pass for three complete cycles at every width. Inactive groups
-  remain face-on; opacity, visibility and gradients stay unchanged.
-- 301 samples per viewport cover 0–15s in 50ms steps, checking width bounds,
-  pauses, overflow and repetition. Samples around each apex confirm no hold.
-- An additional 15-second run on the real document clock at 1440px observed all
-  seven circles turn during each of three cycles, with no overflow.
-- Full-page PNGs under reduced motion are byte-identical to the unchanged base
-  at all four widths. Hero text, buttons, layout and all other sections match.
-- Hero phase screenshots were captured at all four widths; mobile and desktop
-  samples were visually reviewed. Existing decorative clipping is preserved.
-- Reduced motion disables all seven rotations and restores face-on discs.
-- Mouse movement does not change the circles; no parallax code was added.
-- No broken images or browser errors. JavaScript syntax and `git diff --check`
-  pass. No production JavaScript or dependency changes.
+- All four checkpoints pass for **three consecutive cycles** at every width.
+  Computed animation names, duration, easing, transforms, custom property values
+  and inline overrides for **every circle** are saved in [results.json](results.json).
+- Independent screenshot pixel measurements at 2400px confirm actual painted
+  widths of **30px / 406px** for all seven circles at all 12 checkpoints. This
+  measures each circle's contribution to the screenshot, not just its CSS matrix.
+- A separate, unpaused **15-second live run** observed all seven circles rotate
+  in each of three consecutive cycles.
+- 301 samples per viewport cover 0–15s, width limits, face-on pauses and repetition.
+  Samples on either side of both peaks confirm symmetric motion and no hold.
+- The rotation works with `script.js` blocked. Resizing the same document across
+  390, 801, 800 and 1920px updates the angles and widths correctly.
+- Reduced motion removes all seven animations. Full-page reduced-motion PNGs
+  are byte-identical to the branch base at all seven viewport widths.
+- No horizontal overflow, broken images, page/console errors or mouse parallax.
+- JavaScript syntax and `git diff --check` pass.
 
-See [results.json](results.json) and the reproducible [browser check](verify.cjs).
-This verifies the local source in Chromium; it is not a production deployment or
-a Safari/Firefox test.
+[Three-cycle screenshot contact sheet](three-cycles.png) (cropped to the circle
+band; original positions retained). Full Hero screenshots for the required phases:
+[0.75s](screenshots/hero-2400-750.png), [2.00s](screenshots/hero-2400-2000.png),
+[3.25s](screenshots/hero-2400-3250.png), [4.50s](screenshots/hero-2400-4500.png).
+Desktop, mobile and three-cycle screenshots were visually inspected.
+
+This verifies Chromium locally; it does not claim production deployment or
+Safari/Firefox testing. CSS inverse trigonometric functions require a modern browser.
 
 ## Reproduce
 
-Install Playwright in the test environment and provide a Chromium executable.
-Serve the repository and an unchanged base checkout over HTTP, then run:
+Install Playwright and `pngjs` in the test environment, and provide Chromium.
+Serve the repository and an unchanged branch-base checkout over HTTP, then run:
 
 ```sh
-TEST_URL=http://127.0.0.1:8000/vivo-forum/ \
-BASELINE_URL=http://127.0.0.1:8000/work/hero-baseline/ \
+TEST_URL=http://127.0.0.1:8000/hero-test/ \
+BASELINE_URL=http://127.0.0.1:8000/hero-before/ \
 CHROMIUM_PATH=/usr/bin/chromium \
-ARTIFACT_DIR=/workspace/work/hero-animation \
+ARTIFACT_DIR=/workspace/work/hero-verification \
 node docs/qa/hero-alternating-orbs/verify.cjs
 ```
 
 `BASELINE_URL` is optional; without it, full-page comparison is skipped. The
-artifact directory receives phase screenshots and machine-readable results.
+artifact directory receives checkpoint screenshots and machine-readable results.
+No production dependencies are added.
