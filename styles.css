@@ -1502,8 +1502,9 @@ ul {
 }
 
 .orb-band {
-  width:406px;
-  height:406px;
+  --orb-diameter:406;
+  width:calc(var(--orb-diameter) * 1px);
+  height:calc(var(--orb-diameter) * 1px);
   top:541px;
   left:calc(50% - 1114px + var(--orb-index) * 229.5px);
 }
@@ -1516,10 +1517,12 @@ ul {
 .orb-band-6 { --orb-index:5; --orb-background:linear-gradient(rgb(90 119 176 / 0.343),rgb(111 141 181 / 0.343)) }
 .orb-band-7 { --orb-index:6; --orb-background:linear-gradient(rgb(87 153 149 / 0.562),rgb(71 158 182 / 0.562)) }
 
-/* Flip only the painted disc: orthographic rotation keeps its center fixed. */
+/* Flip only the painted disc: orthographic width = diameter * cos(angle).
+   Unitless pixel sizes keep the angle and layout in sync without JavaScript.
+   Desktop: acos(30 / 406) = 85.76246deg; mobile: acos(24 / 310) = 85.55975deg. */
 .orb-band {
-  --orb-edge-width:30px;
-  --orb-flip-angle:0deg
+  --orb-edge-width:30;
+  --orb-flip-angle:acos(var(--orb-edge-width) / var(--orb-diameter))
 }
 
 .orb-band::before {
@@ -1531,7 +1534,7 @@ ul {
   transform-origin:center;
   transform:rotateY(0deg);
   animation-duration:5s;
-  animation-timing-function:cubic-bezier(.4,0,0,1);
+  animation-timing-function:ease-in-out;
   animation-iteration-count:infinite
 }
 
@@ -1805,9 +1808,8 @@ ul {
   }
   .hero-art { clip-path:none }
   .orb-band {
-    --orb-edge-width:24px;
-    width:310px;
-    height:310px;
+    --orb-edge-width:24;
+    --orb-diameter:310;
     top:auto;
     bottom:100px;
     left:calc(50% - 760px + var(--orb-index) * 175px)

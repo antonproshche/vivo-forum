@@ -1,14 +1,15 @@
-// Requires Playwright and Chromium; no production dependencies.
-// Serve /workspace on port 8000. BASELINE_URL is an unchanged main checkout.
+// Requires Playwright, pngjs and Chromium; no production dependencies.
+// Serve the site over HTTP. BASELINE_URL is an unchanged branch-base checkout.
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const path = require('node:path');
+const { PNG } = require('pngjs');
 
 const url = process.env.TEST_URL || 'http://127.0.0.1:8000/vivo-forum/';
 const baseline = process.env.BASELINE_URL;
 const artifacts = process.env.ARTIFACT_DIR || '/workspace/work/hero-animation';
-const widths = [390, 768, 1440, 1920];
+const widths = [390, 768, 800, 801, 1440, 1920, 2400];
 
 async function ready(page, address) {
   await page.goto(address);
@@ -40,6 +41,39 @@ async function sample(page, time) {
   }, time);
 }
 
+async function computed(page) {
+  return page.locator('.orb-band').evaluateAll(circles => circles.map((circle, i) => {
+    const style = getComputedStyle(circle, '::before');
+    return { circle: i + 1, animationName: style.animationName,
+      duration: style.animationDuration, iterations: style.animationIterationCount,
+      easing: style.animationTimingFunction, transform: style.transform,
+      angle: style.getPropertyValue('--orb-flip-angle'),
+      diameter: style.getPropertyValue('--orb-diameter'),
+      edgeWidth: style.getPropertyValue('--orb-edge-width'),
+      inlineAngle: circle.style.getPropertyValue('--orb-flip-angle') };
+  }));
+}
+
+// Measure actual painted pixels, independently of computed matrices. At 2400px
+// every circle is on screen; the central scanline is clear of text and clipping.
+async function paintedWidths(page) {
+  const clip = { x: 0, y: 744, width: 2400, height: 1 };
+  const visible = PNG.sync.read(await page.screenshot({ clip }));
+  const widths = [];
+  for (let i = 1; i <= 7; i++) {
+    const hide = await page.addStyleTag({ content: `.orb-band-${i}::before { visibility:hidden }` });
+    const hidden = PNG.sync.read(await page.screenshot({ clip }));
+    await hide.evaluate(node => node.remove());
+    const changed = [];
+    for (let x = 0; x < 2400; x++) {
+      if ([0, 1, 2].some(c => Math.abs(visible.data[x * 4 + c] - hidden.data[x * 4 + c]) > 1)) changed.push(x);
+    }
+    assert.ok(changed.length, `circle ${i} must paint visible pixels`);
+    widths.push(changed.at(-1) - changed[0] + 1);
+  }
+  return widths;
+}
+
 (async () => {
   await fs.mkdir(artifacts, { recursive: true });
   const browser = await chromium.launch({
@@ -69,22 +103,29 @@ async function sample(page, time) {
       const original = await sample(page, 0);
       const edge = width <= 800 ? 24 : 30;
       const checkpoints = {};
+      const computedStyles = {};
+      const rasterWidths = {};
       for (let cycle = 0; cycle < 3; cycle++) {
-        for (const [time, group] of [[750, 0], [2000, -1], [3150, 1], [3250, 1], [4500, -1]]) {
+        for (const [time, group] of [[750, 0], [2000, -1], [3250, 1], [4500, -1]]) {
           const circles = await sample(page, cycle * 5000 + time);
           circles.forEach((circle, i) => {
             const active = i % 2 === group;
-            // At 3.15s B is approaching its 3.25s minimum, within 4px of it.
-            const tolerance = time === 3150 ? 4 : 0.01;
-            assert.ok(Math.abs(circle.width - (active ? edge : circle.diameter)) < tolerance,
+            assert.ok(Math.abs(circle.width - (active ? edge : circle.diameter)) < 0.01,
               `${width}px, cycle ${cycle + 1}, ${time}ms, circle ${i + 1}: ${circle.width}`);
             assert.equal(circle.opacity, '1');
             assert.equal(circle.visibility, 'visible');
             assert.equal(circle.background, original[i].background);
           });
           checkpoints[`${cycle * 5000 + time}ms`] = circles.map(c => +c.width.toFixed(3));
-          if (!cycle && time !== 3250) {
-            await page.locator('.hero').screenshot({ path: path.join(artifacts, `hero-${width}-${time}.png`) });
+          computedStyles[`${cycle * 5000 + time}ms`] = await computed(page);
+          if (!cycle || width === 2400) {
+            await page.locator('.hero').screenshot({ path: path.join(artifacts, `hero-${width}-${cycle * 5000 + time}.png`) });
+          }
+          if (width === 2400) {
+            const painted = await paintedWidths(page);
+            painted.forEach((w, i) => assert.ok(Math.abs(w - circles[i].width) <= 2,
+              `actual pixels: cycle ${cycle + 1}, ${time}ms, circle ${i + 1}: ${w}`));
+            rasterWidths[`${cycle * 5000 + time}ms`] = painted;
           }
         }
       }
@@ -118,6 +159,12 @@ async function sample(page, time) {
         const after = await sample(page, peak + 25);
         const i = peak === 750 ? 0 : 1;
         assert.ok(before[i].width > at[i].width && after[i].width > at[i].width, 'no edge-on hold');
+        for (const offset of [25, 150, 375, 600]) {
+          const left = await sample(page, peak - offset);
+          const right = await sample(page, peak + offset);
+          left.forEach((circle, j) => assert.ok(Math.abs(circle.width - right[j].width) < 0.01,
+            `symmetric flip: ${peak}ms +/- ${offset}ms, circle ${j + 1}`));
+        }
       }
       await sample(page, 2000);
       const intro = await page.locator('.orb-intro').evaluate(c => ({ rect: c.getBoundingClientRect().toJSON(), transform: getComputedStyle(c).transform }));
@@ -140,11 +187,36 @@ async function sample(page, time) {
       }
       assert.equal(await page.evaluate(() => [...document.images].filter(i => !i.complete || !i.naturalWidth).length), 0);
       assert.deepEqual(errors, []);
-      results.push({ width, checkpoints, fullPageIdenticalToBaseline: identicalBaseline,
+      results.push({ width, checkpoints, computedStyles, rasterWidths, fullPageIdenticalToBaseline: identicalBaseline,
         sharedStartTime: true, cycles: 3, sweepSamples: sweep.length, horizontalOverflow: false,
         reducedMotion: 'pass', noParallax: 'pass', browserErrors: errors });
       await page.close();
     }
+    // The rotation must also work before/without the navigation script.
+    const withoutJS = [];
+    for (const width of [390, 1440]) {
+      const page = await browser.newPage({ viewport: { width, height: 1100 } });
+      await page.route('**/script.js', route => route.abort());
+      await ready(page, url);
+      const edge = width === 390 ? 24 : 30;
+      for (const [time, group] of [[750, 0], [3250, 1]]) {
+        const circles = await sample(page, time);
+        circles.forEach((circle, i) => assert.ok(Math.abs(circle.width - (i % 2 === group ? edge : circle.diameter)) < 0.01));
+      }
+      withoutJS.push({ width, computedStyles: await computed(page), passed: true });
+      await page.close();
+    }
+    // Resize the same document across the breakpoint, without a JS observer.
+    const resizing = await browser.newPage({ viewport: { width: 1440, height: 1100 } });
+    await ready(resizing, url);
+    for (const width of [390, 801, 800, 1920]) {
+      await resizing.setViewportSize({ width, height: 1100 });
+      for (const [time, group] of [[750, 0], [3250, 1]]) {
+        const circles = await sample(resizing, time);
+        circles.forEach((circle, i) => assert.ok(Math.abs(circle.width - (i % 2 === group ? (width <= 800 ? 24 : 30) : circle.diameter)) < 0.01));
+      }
+    }
+    await resizing.close();
     // Also let the real document clock run through three cycles without seeking.
     const page = await browser.newPage({ viewport: { width: 1440, height: 1100 } });
     await ready(page, url);
@@ -168,9 +240,9 @@ async function sample(page, time) {
     }));
     assert.deepEqual(live.groups, Array.from({ length: 3 }, () => [1, 2, 3, 4, 5, 6, 7]));
     assert.equal(live.overflow, false);
-    const report = { browser: await browser.version(), viewports: results, live };
+    const report = { browser: await browser.version(), viewports: results, withoutJS, resize: 'pass', live };
     await fs.writeFile(path.join(artifacts, 'results.json'), JSON.stringify(report, null, 2) + '\n');
-    console.log(JSON.stringify(report, null, 2));
+    console.log(JSON.stringify({ browser: report.browser, widths, cycles: 3, live, withoutJS: 'pass', resize: 'pass' }, null, 2));
   } finally {
     await browser.close();
   }

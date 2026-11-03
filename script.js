@@ -36,16 +36,3 @@ document.addEventListener('click', event => {
 mobileViewport.addEventListener('change', syncMenu);
 document.documentElement.classList.add('js');
 syncMenu();
-
-// Orthographic projection: visible width = diameter * cos(angle).
-// Observe layout size, never the animated surface, so flips cannot affect geometry.
-const orbSizeObserver = new ResizeObserver(entries => {
-  entries.forEach(({target, contentRect}) => {
-    const diameter = contentRect.width;
-    if (!diameter) return;
-    const edgeWidth = parseFloat(getComputedStyle(target).getPropertyValue('--orb-edge-width'));
-    const angle = Math.acos(Math.min(1, edgeWidth / diameter)) * 180 / Math.PI;
-    target.style.setProperty('--orb-flip-angle', `${angle}deg`);
-  });
-});
-document.querySelectorAll('.orb-band').forEach(circle => orbSizeObserver.observe(circle));
