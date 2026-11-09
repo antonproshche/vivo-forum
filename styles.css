@@ -337,6 +337,15 @@ ul {
   top:5%
 }
 
+.nadezhda img {
+  width:140%;
+  height:140%;
+  left:-20%;
+  top:-10%;
+  object-fit:cover;
+  object-position:center top
+}
+
 .diana img {
   width:133%;
   left:-17%;
